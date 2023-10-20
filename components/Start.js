@@ -3,17 +3,15 @@ import {
   StyleSheet,
   View,
   Text,
-  Button,
   TextInput,
   ImageBackground,
   TouchableOpacity,
   KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 
-
-
 const backgroundColors = {
-  a: "#ECECEC",
+  a: "#090C08",
   b: "#474056",
   c: "#8A95A5",
   d: "#B9C6AE",
@@ -25,50 +23,33 @@ const Start = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <ImageBackground source={ require("../assets/images/BGimage.png")} resizeMode="cover" style={styles.image}>
-        <Text style={styles.appTitle}>App title</Text>
+      <ImageBackground
+        source={require("../assets/images/BGimage.png")}
+        resizeMode="cover"
+        style={styles.image}
+      >
+        <Text style={styles.appTitle}>App Title</Text>
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.textInput}
             value={name}
             onChangeText={setName}
-            placeholder="Type your username here"
+            placeholder="Your Name"
             placeholderTextColor="#757083"
           />
           <Text style={styles.textColorSelector}>Choose background color:</Text>
           <View style={styles.colorSelector}>
-            <TouchableOpacity
-              style={[
-                styles.circle,
-                color === backgroundColors.a && styles.selectedCircle,
-                { backgroundColor: backgroundColors.a },
-              ]}
-              onPress={() => setColor(backgroundColors.a)}
-            ></TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.circle,
-                color === backgroundColors.b && styles.selectedCircle,
-                { backgroundColor: backgroundColors.b },
-              ]}
-              onPress={() => setColor(backgroundColors.b)}
-            ></TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.circle,
-                color === backgroundColors.c && styles.selectedCircle,
-                { backgroundColor: backgroundColors.c },
-              ]}
-              onPress={() => setColor(backgroundColors.c)}
-            ></TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.circle,
-                color === backgroundColors.d && styles.selectedCircle,
-                { backgroundColor: backgroundColors.d },
-              ]}
-              onPress={() => setColor(backgroundColors.d)}
-            ></TouchableOpacity>
+            {Object.keys(backgroundColors).map((key) => (
+              <TouchableOpacity
+                key={key}
+                style={[
+                  styles.circle,
+                  color === backgroundColors[key] && styles.selectedCircle,
+                  { backgroundColor: backgroundColors[key] },
+                ]}
+                onPress={() => setColor(backgroundColors[key])}
+              />
+            ))}
           </View>
           <TouchableOpacity
             style={styles.button}
@@ -76,7 +57,7 @@ const Start = ({ navigation }) => {
               navigation.navigate("Chat", { name: name, color: color })
             }
           >
-            <Text>Start chatting</Text>
+            <Text style={styles.buttonText}>Start Chatting</Text>
           </TouchableOpacity>
         </View>
         {Platform.OS === "ios" ? (
@@ -86,6 +67,7 @@ const Start = ({ navigation }) => {
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -93,7 +75,6 @@ const styles = StyleSheet.create({
   image: {
     flex: 1,
     justifyContent: "space-between",
-    //alignItems: 'center',
     padding: "6%",
   },
   appTitle: {
@@ -105,7 +86,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flex: 1,
-    backgroundColor: "#000000",
+    backgroundColor: "#ffffff",
     padding: "6%",
     flexBasis: 160,
   },
@@ -145,5 +126,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#757083",
     padding: 10,
   },
+  buttonText: {
+    color: "#FFFFFF",
+    textAlign: "center",
+    fontWeight: "600",
+    fontSize: 16,
+  },
 });
+
 export default Start;
