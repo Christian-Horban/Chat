@@ -1,5 +1,3 @@
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
 import Start from "./components/Start";
 import Chat from "./components/Chat";
 import { NavigationContainer } from "@react-navigation/native";
