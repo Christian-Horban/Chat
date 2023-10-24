@@ -7,35 +7,38 @@ import {
   Platform,
 } from "react-native";
 import { GiftedChat, Bubble } from "react-native-gifted-chat";
-import { collection, getDocs, addDoc, onSnapshot } from "firebase/firestore";
+import { collection, getDocs, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
 
 const Chat = ({ db, route }) => {
   const { name, _id } = route.params;
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    const unsubMessages = onSnapshot(
+    // Using query to order messages by createdAt
+    const q = query(
       collection(db, "messages"),
-      (querySnapshot) => {
-        const newMessages = querySnapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            _id: doc.id,
-            text: data.text,
-            createdAt: data.createdAt.toDate(),
-            user: {
-              _id: data.user._id,
-              name: data.user.name,
-              avatar: data.user.avatar,
-            },
-          };
-        });
-
-        // Sort messages by createdAt in descending order
-        newMessages.sort((a, b) => b.createdAt - a.createdAt);
-        setMessages(newMessages);
-      }
+      orderBy("createdAt", "desc")
     );
+
+    const unsubMessages = onSnapshot(q, (querySnapshot) => {
+      const newMessages = [];
+
+      querySnapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        newMessages.push({
+          _id: doc.id,
+          text: data.text,
+          createdAt: new Date(data.createdAt.toMillis()),
+          user: {
+            _id: data.user._id,
+            name: data.user.name,
+            avatar: data.user.avatar,
+          },
+        });
+      });
+
+      setMessages(newMessages);
+    });
 
     // Clean up function
     return () => {
