@@ -66,14 +66,16 @@ const Start = ({ navigation }) => {
           </View>
           <TouchableOpacity
             style={styles.button}
-            onPress={signInUser
-            }
+            onPress={signInUser}
           >
             <Text style={styles.buttonText}>Start Chatting</Text>
           </TouchableOpacity>
         </View>
         {Platform.OS === "ios" ? (
           <KeyboardAvoidingView behavior="padding" />
+        ) : null}
+        {Platform.OS === "android" ? (
+          <KeyboardAvoidingView behavior="height" />
         ) : null}
       </ImageBackground>
     </View>
