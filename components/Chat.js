@@ -6,79 +6,109 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { GiftedChat, Bubble } from "react-native-gifted-chat";
-import { collection, getDocs, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
+import { GiftedChat, Bubble, InputToolbar } from "react-native-gifted-chat";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+} from "firebase/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const Chat = ({ db, route }) => {
-  const { name, _id } = route.params;
+const Chat = ({ db, route, navigation, isConnected }) => {
+  const { name, color, _id } = route.params;
   const [messages, setMessages] = useState([]);
 
+  const loadCachedMessages = async () => {
+    const cachedMessages = (await AsyncStorage.getItem('messages')) || '[]';
+    setMessages(JSON.parse(cachedMessages));
+  };
+
+  let unsubMessages;
+
   useEffect(() => {
-    // Using query to order messages by createdAt
-    const q = query(
-      collection(db, "messages"),
-      orderBy("createdAt", "desc")
-    );
-
-    const unsubMessages = onSnapshot(q, (querySnapshot) => {
-      const newMessages = [];
-
-      querySnapshot.docs.forEach((doc) => {
-        const data = doc.data();
-        newMessages.push({
-          _id: doc.id,
-          text: data.text,
-          createdAt: new Date(data.createdAt.toMillis()),
-          user: {
-            _id: data.user._id,
-            name: data.user.name,
-            avatar: data.user.avatar,
-          },
-        });
-      });
-
-      setMessages(newMessages);
+    navigation.setOptions({
+      title: name,
+      headerStyle: {
+        backgroundColor: color, // set the background color of the header
+      },
+      headerTitleStyle: {
+        color: color === "" ? "#000" : "#fff", // if color is empty, use black, else use white
+      },
     });
+
+    if (isConnected === true) {
+      if (unsubMessages) unsubMessages();
+      unsubMessages = null;
+
+      const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
+      unsubMessages = onSnapshot(q, (documentsSnapshot) => {
+        let newMessages = [];
+        documentsSnapshot.forEach((doc) => {
+          newMessages.push({
+            id: doc.id,
+            ...doc.data(),
+            createdAt: new Date(doc.data().createdAt.toMillis()), // convert createdAt to Date object })
+          });
+        });
+        cachedMessages(newMessages);
+        setMessages(newMessages);
+      });
+    } else loadCachedMessages();
 
     // Clean up function
     return () => {
-      if (unsubMessages) unsubMessages();
+      if (unsubMessages) {
+        unsubMessages();
+      }
     };
-  }, [db]);
+  }, [isConnected]);
 
-  // Function to handle sending of new messages
+  const cachedMessages = async (messagesToCache) => {
+    try {
+      await AsyncStorage.setItem("messages", JSON.stringify(messagesToCache));
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
   const onSend = (newMessages) => {
     addDoc(collection(db, "messages"), newMessages[0]);
   };
 
-  // Custom rendering function for message bubbles
+  const renderInputToolbar = (props) => {
+    // renderInputToolbar function
+    if (isConnected) return <InputToolbar {...props} />;
+    else return null;
+  };
+
   const renderBubble = (props) => {
+    // renderBubble function
     return (
       <Bubble
         {...props}
         wrapperStyle={{
           right: {
-            backgroundColor: "#000",
+            backgroundColor: "#000", // change the background color of the right side chat bubble
           },
           left: {
-            backgroundColor: "#FFF",
+            backgroundColor: "#fff", // change the background color of the left side chat bubble
           },
         }}
       />
     );
   };
-  
-  // Render the chat UI
+
   return (
-    <View style={{ flex: 1 }}>
+    <View style={[styles.container, { backgroundColor: color }]}>
       <GiftedChat
         messages={messages}
         renderBubble={renderBubble}
         onSend={(messages) => onSend(messages)}
-        user={{
-          _id: _id,
-          name: name,
-        }}
+        user={{ _id: _id, name }}
+        renderInputToolbar={renderInputToolbar}
       />
       {Platform.OS === "android" ? (
         <KeyboardAvoidingView behavior="height" />
@@ -91,10 +121,9 @@ const Chat = ({ db, route }) => {
 };
 
 const styles = StyleSheet.create({
+  // styles for the Chat component
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
   },
 });
 
