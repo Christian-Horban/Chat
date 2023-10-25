@@ -1,3 +1,4 @@
+// Required imports
 import { useState } from "react";
 import {
   StyleSheet,
@@ -12,6 +13,7 @@ import {
 } from "react-native";
 import { getAuth, signInAnonymously } from "firebase/auth";
 
+// Predefined background colors
 const backgroundColors = {
   a: "#090C08",
   b: "#474056",
@@ -20,13 +22,23 @@ const backgroundColors = {
 };
 
 const Start = ({ navigation }) => {
+  // State variables for the user's name and chosen color
   const [name, setName] = useState("");
   const [color, setColor] = useState(backgroundColors.d);
+
+  // Firebase authentication
   const auth = getAuth();
+
+  // Sign in function (anonymously) for the user
   const signInUser = () => {
     signInAnonymously(auth)
       .then((result) => {
-        navigation.navigate("Chat", { name: name, _id: result.user.uid });
+        // Navigate to the Chat screen upon successful sign in
+        navigation.navigate("Chat", {
+          name: name,
+          _id: result.user.uid,
+          color: color,
+        });
         Alert.alert("Signed in Successfully!");
       })
       .catch((error) => {
@@ -41,7 +53,7 @@ const Start = ({ navigation }) => {
         resizeMode="cover"
         style={styles.image}
       >
-        <Text style={styles.appTitle}>App Title</Text>
+        <Text style={styles.appTitle}>EZ Chat</Text>
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.textInput}
@@ -64,13 +76,11 @@ const Start = ({ navigation }) => {
               />
             ))}
           </View>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={signInUser}
-          >
+          <TouchableOpacity style={styles.button} onPress={signInUser}>
             <Text style={styles.buttonText}>Start Chatting</Text>
           </TouchableOpacity>
         </View>
+        {/* Conditional rendering based on the OS for better UI experience */}
         {Platform.OS === "ios" ? (
           <KeyboardAvoidingView behavior="padding" />
         ) : null}
